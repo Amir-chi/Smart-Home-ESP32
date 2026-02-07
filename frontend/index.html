@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-CAM Smart Home Dashboard</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           CSS VARIABLES
+        ============================================ */
+        :root {
+            /* Dark Theme (Default) */
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151932;
+            --bg-card: rgba(21, 25, 50, 0.8);
+            --text-primary: #e0e7ff;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: rgba(59, 130, 246, 0.2);
+            --shadow: rgba(0, 0, 0, 0.3);
+            --glow: rgba(251, 191, 36, 0.5);
+            --lamp-on: #fbbf24;
+        }
+
+        /* Light Theme */
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: rgba(148, 163, 184, 0.2);
+            --shadow: rgba(0, 0, 0, 0.08);
+            --glow: rgba(251, 191, 36, 0.4);
+            --lamp-on: #f59e0b;
+        }
+
+        /* ============================================
+           GLOBAL RESET
+        ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ============================================
+           HEADER
+        ============================================ */
+        .header {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .clock {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .theme-toggle {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        /* ============================================
+           CONTAINER & GRID
+        ============================================ */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+
+        /* ============================================
+           CARD STYLES
+        ============================================ */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 24px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* ============================================
+           COMMAND INPUT SECTION
+        ============================================ */
+        .command-section {
+            grid-column: 1 / -1;
+        }
+
+        .command-input-wrapper {
+            position: relative;
+        }
+
+        .command-input {
+            width: 100%;
+            padding: 1.25rem 300px 1.25rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .command-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .command-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .command-buttons {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .send-btn, .voice-btn, .image-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .send-btn:hover, .voice-btn:hover, .image-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .send-btn:active, .voice-btn:active, .image-btn:active {
+            transform: scale(0.95);
+        }
+
+        .voice-btn {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+        }
+
+        .voice-btn.recording {
+            animation: recording-pulse 1s infinite;
+        }
+
+        @keyframes recording-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .image-btn {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .command-examples {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .example-chip {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-chip:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* ============================================
+           IMAGE PREVIEW
+        ============================================ */
+        #imageInput {
+            display: none;
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            display: none;
+            position: relative;
+        }
+
+        .image-preview.active {
+            display: block;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 15px;
+            border: 2px solid var(--border);
+        }
+
+        .image-preview-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--error);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ============================================
+           VIRTUAL LAMPS & ESP32 LED
+        ============================================ */
+        .lamps-section {
+            grid-column: 1 / -1;
+        }
+
+        .lamps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .lamp-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lamp-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--glow);
+        }
+
+        .lamp-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .lamp-card.on .lamp-icon {
+            color: var(--lamp-on);
+            filter: drop-shadow(0 0 20px var(--glow));
+        }
+
+        .lamp-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .lamp-status {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .lamp-card.on .lamp-status {
+            color: var(--success);
+        }
+
+        .lamp-toggle {
+            width: 60px;
+            height: 30px;
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            position: relative;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+
+        .lamp-toggle::before {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .lamp-card.on .lamp-toggle {
+            background: var(--lamp-on);
+            border-color: var(--lamp-on);
+        }
+
+        .lamp-card.on .lamp-toggle::before {
+            transform: translateX(30px);
+            background: white;
+        }
+
+        /* ============================================
+           CAMERA COLUMN (Settings + Control)
+        ============================================ */
+        .camera-column {
+            grid-column: span 6;
+        }
+
+        .camera-settings-card {
+            margin-bottom: 1.5rem;
+        }
+
+        .setting-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .setting-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .setting-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .resolution-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .capture-btn, .flash-toggle {
+            flex: 1;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .flash-toggle {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        .flash-toggle.active {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white;
+            border-color: #f59e0b;
+        }
+
+        .capture-btn:hover, .flash-toggle:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .camera-preview {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .camera-preview img {
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+        }
+
+        .camera-placeholder {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .camera-placeholder i {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .image-caption {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           COMMAND HISTORY SECTION (col-span-6)
+        ============================================ */
+        .history-section {
+            grid-column: span 6;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .clear-history {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .clear-history:hover {
+            background: #dc2626;
+        }
+
+        .history-list {
+            max-height: 860px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .history-item {
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .history-item-command {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .history-item-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           TOAST NOTIFICATIONS
+        ============================================ */
+        .toast-container {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 8px 24px var(--shadow);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast.success .toast-icon {
+            color: var(--success);
+        }
+
+        .toast.error {
+            border-color: var(--error);
+        }
+
+        .toast.error .toast-icon {
+            color: var(--error);
+        }
+
+        /* ============================================
+           RESPONSIVE
+        ============================================ */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .command-section,
+            .lamps-section,
+            .camera-column,
+            .history-section {
+                grid-column: 1 / -1;
+            }
+
+            .command-input {
+                padding-right: 120px;
+            }
+
+            .command-buttons {
+                flex-direction: column;
+                right: 4px;
+                top: 8px;
+                transform: none;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <i class="fas fa-camera"></i> ESP32-CAM
+            </div>
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                <span>Connected</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="clock" id="clock">Loading...</div>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-sun"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        <div class="grid">
+            <!-- Command Input Section -->
+            <section class="card command-section">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-terminal"></i>
+                    </div>
+                    <div>
+                        <h2 class="card-title">Natural Language Command</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">
+                            Send commands via Text, Voice, or Image
+                        </p>
+                    </div>
+                </div>
+
+                <div class="command-input-wrapper">
+                    <input
+                        type="text"
+                        class="command-input"
+                        id="commandInput"
+                        placeholder="e.g., Turn on lamp 1, Take a photo, Enable flash..."
+                    >
+                    <div class="command-buttons">
+                        <button class="voice-btn" id="voiceBtn">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button class="image-btn" id="imageBtn">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <button class="send-btn" id="sendBtn">
+                            <span id="sendBtnText">Send</span>
+                            <div class="loading-spinner" id="loadingSpinner"></div>
+                            <i class="fas fa-paper-plane" id="sendIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hidden File Input -->
+                <input type="file" id="imageInput" accept="image/*">
+
+                <!-- Image Preview -->
+                <div class="image-preview" id="imagePreview">
+                    <button class="image-preview-close" id="closePreview">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <img id="previewImg" src="" alt="Preview">
+                </div>
+
+                <div class="command-examples">
+                    <div class="example-chip" onclick="fillCommand('Turn on lamp 1')">
+                        <i class="fas fa-lightbulb"></i> Turn on lamp 1
+                    </div>
+                    <div class="example-chip" onclick="fillCommand('Turn off all lights')">
+                        <i class="fas fa-power-off"></i> Turn off all lights
+                    </div>
+                    <div class="example-chip" onclick="fillCommand('Take a photo')">
+                        <i class="fas fa-camera"></i> Take a photo
+                    </div>
+                    <div class="example-chip" onclick="fillCommand('Enable flash')">
+                        <i class="fas fa-bolt"></i> Enable flash
+                    </div>
+                    <div class="example-chip" onclick="fillCommand('Show status')">
+                        <i class="fas fa-info-circle"></i> Show status
+                    </div>
+                </div>
+            </section>
+
+            <!-- Virtual Lamps Section -->
+            <section class="card lamps-section">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h2 class="card-title">Virtual Lamps & ESP32 LED</h2>
+                </div>
+
+                <div class="lamps-grid">
+                    <div class="lamp-card" id="lamp1" onclick="toggleLamp(1)">
+                        <i class="fas fa-lightbulb lamp-icon"></i>
+                        <div class="lamp-name">Lamp 1</div>
+                        <div class="lamp-status">OFF</div>
+                        <div class="lamp-toggle"></div>
+                    </div>
+
+                    <div class="lamp-card" id="lamp2" onclick="toggleLamp(2)">
+                        <i class="fas fa-lightbulb lamp-icon"></i>
+                        <div class="lamp-name">Lamp 2</div>
+                        <div class="lamp-status">OFF</div>
+                        <div class="lamp-toggle"></div>
+                    </div>
+
+                    <div class="lamp-card" id="lamp3" onclick="toggleLamp(3)">
+                        <i class="fas fa-lightbulb lamp-icon"></i>
+                        <div class="lamp-name">Lamp 3</div>
+                        <div class="lamp-status">OFF</div>
+                        <div class="lamp-toggle"></div>
+                    </div>
+
+                    <div class="lamp-card" id="espLed" onclick="toggleEspLed()">
+                        <i class="fas fa-microchip lamp-icon"></i>
+                        <div class="lamp-name">ESP32 LED</div>
+                        <div class="lamp-status">OFF</div>
+                        <div class="lamp-toggle"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Camera Column (Settings + Control) -->
+            <div class="camera-column">
+                <!-- Camera Settings Card -->
+                <section class="card camera-settings-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h2 class="card-title">Camera Settings</h2>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Brightness</span>
+                            <span class="setting-value" id="brightnessValue">0</span>
+                        </div>
+                        <input 
+                            type="range" 
+                            class="slider" 
+                            id="brightness" 
+                            min="-2" 
+                            max="2" 
+                            value="0" 
+                            step="1"
+                            oninput="updateSetting('brightness', this.value)"
+                        >
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Contrast</span>
+                            <span class="setting-value" id="contrastValue">0</span>
+                        </div>
+                        <input 
+                            type="range" 
+                            class="slider" 
+                            id="contrast" 
+                            min="-2" 
+                            max="2" 
+                            value="0" 
+                            step="1"
+                            oninput="updateSetting('contrast', this.value)"
+                        >
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Resolution</span>
+                        </div>
+                        <select class="resolution-select" id="resolution" onchange="updateResolution(this.value)">
+                            <option value="QVGA">QVGA (320x240)</option>
+                            <option value="CIF">CIF (400x296)</option>
+                            <option value="VGA">VGA (640x480)</option>
+                            <option value="SVGA" selected>SVGA (800x600)</option>
+                            <option value="XGA">XGA (1024x768)</option>
+                            <option value="SXGA">SXGA (1280x1024)</option>
+                            <option value="UXGA">UXGA (1600x1200)</option>
+                        </select>
+                    </div>
+                </section>
+
+                <!-- Camera Control Card -->
+                <section class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <h2 class="card-title">Camera Control</h2>
+                    </div>
+
+                    <div class="camera-controls">
+                        <button class="capture-btn" id="captureBtn" onclick="capturePhoto()">
+                            <i class="fas fa-camera"></i>
+                            <span>Capture Photo</span>
+                        </button>
+
+                        <button class="flash-toggle" id="flashToggle" onclick="toggleFlash()">
+                            <i class="fas fa-bolt"></i>
+                            <span>Flash: OFF</span>
+                        </button>
+                    </div>
+
+                    <div class="camera-preview" id="cameraPreview">
+                        <div class="camera-placeholder">
+                            <i class="fas fa-camera"></i>
+                            <p>No image captured yet</p>
+                        </div>
+                    </div>
+
+                    <div class="image-caption" id="imageCaption" style="display: none;">
+                        📸 Last captured: <span id="captureTime">--</span>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Command History Section (Right Column) -->
+            <section class="card history-section">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h2 class="card-title">Command History</h2>
+                </div>
+
+                <div class="history-header">
+                    <button class="clear-history" id="clearHistoryBtn" onclick="clearHistory()">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
+
+                <div class="history-list" id="historyList">
+                    <div class="history-empty">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>No commands yet</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        const state = {
+            theme: 'dark',
+            lamps: {
+                1: false,
+                2: false,
+                3: false
+            },
+            espLed: false,
+            flash: false,
+            cameraSettings: {
+                brightness: 0,
+                contrast: 0,
+                resolution: 'SVGA'
+            },
+            commandHistory: [],
+            isRecording: false
+        };
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            startClock();
+            loadCommandHistory();
+
+            // Enter key listener
+            document.getElementById('commandInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendCommand();
+                }
+            });
+
+            // Image preview close button
+            document.getElementById('closePreview').addEventListener('click', () => {
+                document.getElementById('imagePreview').classList.remove('active');
+            });
+        });
+
+        // ============================================
+        // THEME MANAGEMENT
+        // ============================================
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            state.theme = savedTheme;
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon();
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', state.theme);
+            localStorage.setItem('theme', state.theme);
+            updateThemeIcon();
+            showToast(
+                `Switched to ${state.theme === 'dark' ? 'Dark' : 'Light'} Mode`,
+                'success'
+            );
+        }
+
+        function updateThemeIcon() {
+            const icon = document.querySelector('#themeToggle i');
+            icon.className = state.theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+        // ============================================
+        // CLOCK
+        // ============================================
+        function startClock() {
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const options = {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('clock').textContent = now.toLocaleString('en-US', options);
+        }
+
+        // ============================================
+        // LAMP CONTROL
+        // ============================================
+        function toggleLamp(lampNumber) {
+            state.lamps[lampNumber] = !state.lamps[lampNumber];
+            const lampCard = document.getElementById(`lamp${lampNumber}`);
+            const status = lampCard.querySelector('.lamp-status');
+
+            if (state.lamps[lampNumber]) {
+                lampCard.classList.add('on');
+                status.textContent = 'ON';
+                showToast(`Lamp ${lampNumber} turned ON`, 'success');
+            } else {
+                lampCard.classList.remove('on');
+                status.textContent = 'OFF';
+                showToast(`Lamp ${lampNumber} turned OFF`, 'success');
+            }
+        }
+
+        function toggleEspLed() {
+            state.espLed = !state.espLed;
+            const espCard = document.getElementById('espLed');
+            const status = espCard.querySelector('.lamp-status');
+
+            if (state.espLed) {
+                espCard.classList.add('on');
+                status.textContent = 'ON';
+                showToast('ESP32 LED turned ON', 'success');
+            } else {
+                espCard.classList.remove('on');
+                status.textContent = 'OFF';
+                showToast('ESP32 LED turned OFF', 'success');
+            }
+        }
+
+        // ============================================
+        // CAMERA SETTINGS
+        // ============================================
+        function updateSetting(setting, value) {
+            state.cameraSettings[setting] = parseInt(value);
+            document.getElementById(`${setting}Value`).textContent = value;
+            showToast(`${setting.charAt(0).toUpperCase() + setting.slice(1)} set to ${value}`, 'success');
+        }
+
+        function updateResolution(value) {
+            state.cameraSettings.resolution = value;
+            showToast(`Resolution changed to ${value}`, 'success');
+        }
+
+        // ============================================
+        // FLASH CONTROL
+        // ============================================
+        function toggleFlash() {
+            state.flash = !state.flash;
+            const flashBtn = document.getElementById('flashToggle');
+
+            if (state.flash) {
+                flashBtn.classList.add('active');
+                flashBtn.innerHTML = '<i class="fas fa-bolt"></i><span>Flash: ON</span>';
+                showToast('Flash enabled', 'success');
+            } else {
+                flashBtn.classList.remove('active');
+                flashBtn.innerHTML = '<i class="fas fa-bolt"></i><span>Flash: OFF</span>';
+                showToast('Flash disabled', 'success');
+            }
+        }
+
+        // ============================================
+        // CAMERA CAPTURE
+        // ============================================
+        function capturePhoto() {
+            const captureBtn = document.getElementById('captureBtn');
+            const preview = document.getElementById('cameraPreview');
+            const caption = document.getElementById('imageCaption');
+
+            captureBtn.disabled = true;
+            captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Capturing...</span>';
+
+            // Simulate capture delay
+            setTimeout(() => {
+                const timestamp = new Date().toLocaleString();
+                const placeholderImage = 'https://via.placeholder.com/800x600/151932/3b82f6?text=ESP32-CAM+Photo';
+
+                preview.innerHTML = `<img src="${placeholderImage}" alt="Captured Photo">`;
+                document.getElementById('captureTime').textContent = timestamp;
+                caption.style.display = 'block';
+
+                captureBtn.disabled = false;
+                captureBtn.innerHTML = '<i class="fas fa-camera"></i><span>Capture Photo</span>';
+
+                showToast('Photo captured successfully!', 'success');
+            }, 2000);
+        }
+
+        // ============================================
+        // VOICE COMMAND
+        // ============================================
+        document.getElementById('voiceBtn').addEventListener('click', () => {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showToast('Speech recognition not supported in this browser', 'error');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            const voiceBtn = document.getElementById('voiceBtn');
+
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            if (!state.isRecording) {
+                state.isRecording = true;
+                voiceBtn.classList.add('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                showToast('Listening... Speak now', 'success');
+
+                recognition.start();
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('commandInput').value = transcript;
+                    showToast(`Voice: "${transcript}"`, 'success');
+                    processCommand(transcript);
+                };
+
+                recognition.onerror = (event) => {
+                    showToast('Voice recognition error', 'error');
+                    resetVoiceButton();
+                };
+
+                recognition.onend = () => {
+                    resetVoiceButton();
+                };
+            } else {
+                recognition.stop();
+                resetVoiceButton();
+            }
+        });
+
+        function resetVoiceButton() {
+            state.isRecording = false;
+            document.getElementById('voiceBtn').classList.remove('recording');
+            document.getElementById('voiceBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+        }
+
+        // ============================================
+        // IMAGE UPLOAD
+        // ============================================
+        document.getElementById('imageBtn').addEventListener('click', () => {
+            document.getElementById('imageInput').click();
+        });
+
+        document.getElementById('imageInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').classList.add('active');
+                    showToast('Image uploaded successfully!', 'success');
+
+                    // Simulate Vision AI processing
+                    setTimeout(() => {
+                        const mockResponse = "Image shows 2 lamps on the table";
+                        document.getElementById('commandInput').value = mockResponse;
+                        showToast('Image analyzed by Vision AI!', 'success');
+                    }, 2000);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ============================================
+        // COMMAND PROCESSING
+        // ============================================
+        function sendCommand() {
+            const input = document.getElementById('commandInput');
+            const command = input.value.trim();
+
+            if (!command) {
+                showToast('Please enter a command', 'error');
+                return;
+            }
+
+            processCommand(command);
+            input.value = '';
+        }
+
+        function processCommand(command) {
+            addToHistory(command);
+
+            const cmd = command.toLowerCase();
+
+            // Lamp control
+            if (cmd.includes('lamp')) {
+                if (cmd.includes('all')) {
+                    const turnOn = cmd.includes('on');
+                    for (let i = 1; i <= 3; i++) {
+                        if (state.lamps[i] !== turnOn) {
+                            toggleLamp(i);
+                        }
+                    }
+                } else {
+                    for (let i = 1; i <= 3; i++) {
+                        if (cmd.includes(i.toString())) {
+                            if (cmd.includes('on') && !state.lamps[i]) {
+                                toggleLamp(i);
+                            } else if (cmd.includes('off') && state.lamps[i]) {
+                                toggleLamp(i);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ESP32 LED control
+            if (cmd.includes('esp') || (cmd.includes('led') && !cmd.includes('lamp'))) {
+                const turnOn = cmd.includes('on') || cmd.includes('enable');
+                if (state.espLed !== turnOn) {
+                    toggleEspLed();
+                }
+            }
+
+            // Flash control
+            if (cmd.includes('flash')) {
+                const enable = cmd.includes('on') || cmd.includes('enable');
+                if (state.flash !== enable) {
+                    toggleFlash();
+                }
+            }
+
+            // Camera
+            if (cmd.includes('photo') || cmd.includes('picture') || cmd.includes('capture')) {
+                capturePhoto();
+            }
+
+            // Status
+            if (cmd.includes('status')) {
+                showStatus();
+            }
+        }
+
+        function fillCommand(command) {
+            document.getElementById('commandInput').value = command;
+        }
+
+        function showStatus() {
+            const status = `
+                🔆 Lamps: ${state.lamps[1] ? '1-ON' : '1-OFF'} | ${state.lamps[2] ? '2-ON' : '2-OFF'} | ${state.lamps[3] ? '3-ON' : '3-OFF'}
+                🔌 ESP32 LED: ${state.espLed ? 'ON' : 'OFF'}
+                ⚡ Flash: ${state.flash ? 'ON' : 'OFF'}
+                📷 Resolution: ${state.cameraSettings.resolution}
+            `;
+            showToast(status, 'success');
+        }
+
+        document.getElementById('sendBtn').addEventListener('click', sendCommand);
+
+        // ============================================
+        // COMMAND HISTORY
+        // ============================================
+        function addToHistory(command) {
+            const timestamp = new Date().toLocaleString();
+            const historyItem = {
+                command: command,
+                timestamp: timestamp,
+                id: Date.now()
+            };
+
+            state.commandHistory.unshift(historyItem);
+
+            if (state.commandHistory.length > 50) {
+                state.commandHistory = state.commandHistory.slice(0, 50);
+            }
+
+            saveCommandHistory();
+            renderHistory();
+        }
+
+        function saveCommandHistory() {
+            localStorage.setItem('commandHistory', JSON.stringify(state.commandHistory));
+        }
+
+        function loadCommandHistory() {
+            const saved = localStorage.getItem('commandHistory');
+            if (saved) {
+                state.commandHistory = JSON.parse(saved);
+                renderHistory();
+            }
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+
+            if (state.commandHistory.length === 0) {
+                historyList.innerHTML = `
+                    <div class="history-empty">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>No commands yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            historyList.innerHTML = state.commandHistory.map(item => `
+                <div class="history-item" onclick="fillCommand('${item.command.replace(/'/g, "\\'")}')">
+                    <div class="history-item-command">
+                        <i class="fas fa-terminal"></i> ${item.command}
+                    </div>
+                    <div class="history-item-meta">
+                        <span><i class="far fa-clock"></i> ${item.timestamp}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all command history?')) {
+                state.commandHistory = [];
+                saveCommandHistory();
+                renderHistory();
+                showToast('Command history cleared', 'success');
+            }
+        }
+
+        // ============================================
+        // TOAST NOTIFICATIONS
+        // ============================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+            toast.innerHTML = `
+                <i class="fas ${icon} toast-icon"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
