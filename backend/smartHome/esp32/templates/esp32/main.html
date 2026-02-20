@@ -1,0 +1,274 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-CAM Smart Home Dashboard</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'esp32/css/main.css' %}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <i class="fas fa-camera"></i> ESP32-CAM
+            </div>
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                <span>Connected</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="clock" id="clock">Loading...</div>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-sun"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        <div class="grid">
+            <!-- Command Input Section -->
+            <section class="card command-section">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-terminal"></i>
+                    </div>
+                    <div>
+                        <h2 class="card-title">Natural Language Command</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">
+                            Send commands via Text, Voice, or Image
+                        </p>
+                    </div>
+                </div>
+
+                <div class="command-input-wrapper">
+                    <input
+                        type="text"
+                        class="command-input"
+                        id="commandInput"
+                        placeholder="e.g., Turn on lamp 1, Take a photo, Enable flash..."
+                    >
+                    <div class="command-buttons">
+                        <button class="voice-btn" id="voiceBtn">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button class="image-btn" id="imageBtn">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <button class="send-btn" id="sendBtn">
+                            <span id="sendBtnText">Send</span>
+                            <div class="loading-spinner" id="loadingSpinner"></div>
+                            <i class="fas fa-paper-plane" id="sendIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hidden File Input -->
+                <input type="file" id="imageInput" accept="image/*">
+
+                <!-- Image Preview -->
+                <div class="image-preview" id="imagePreview">
+                    <button class="image-preview-close" id="closePreview">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <img id="previewImg" src="" alt="Preview">
+                </div>
+
+                <div class="command-examples">
+                    <div class="example-chip" onclick="fillCommand('Turn on lamp 1')">
+                        <i class="fas fa-lightbulb"></i> Turn on lamp 1
+                    </div>
+                    <div class="example-chip" onclick="fillCommand('Turn off all lights')">
+                        <i class="fas fa-power-off"></i> Turn off all lights
+                    </div>
+                    <div class="example-chip" onclick="fillCommand('Take a photo')">
+                        <i class="fas fa-camera"></i> Take a photo
+                    </div>
+                    <div class="example-chip" onclick="fillCommand('Enable flash')">
+                        <i class="fas fa-bolt"></i> Enable flash
+                    </div>
+                    <div class="example-chip" onclick="fillCommand('Show status')">
+                        <i class="fas fa-info-circle"></i> Show status
+                    </div>
+                </div>
+            </section>
+
+            <!-- Virtual Lamps Section -->
+            <section class="card lamps-section">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h2 class="card-title">Virtual Lamps & ESP32 LED</h2>
+                </div>
+
+                <div class="lamps-grid">
+                    <div class="lamp-card" id="lamp1" onclick="toggleLamp(1)">
+                        <i class="fas fa-lightbulb lamp-icon"></i>
+                        <div class="lamp-name">Lamp 1</div>
+                        <div class="lamp-status">OFF</div>
+                        <div class="lamp-toggle"></div>
+                    </div>
+
+                    <div class="lamp-card" id="lamp2" onclick="toggleLamp(2)">
+                        <i class="fas fa-lightbulb lamp-icon"></i>
+                        <div class="lamp-name">Lamp 2</div>
+                        <div class="lamp-status">OFF</div>
+                        <div class="lamp-toggle"></div>
+                    </div>
+
+                    <div class="lamp-card" id="lamp3" onclick="toggleLamp(3)">
+                        <i class="fas fa-lightbulb lamp-icon"></i>
+                        <div class="lamp-name">Lamp 3</div>
+                        <div class="lamp-status">OFF</div>
+                        <div class="lamp-toggle"></div>
+                    </div>
+
+                    <div class="lamp-card" id="espLed" onclick="toggleEspLed()">
+                        <i class="fas fa-microchip lamp-icon"></i>
+                        <div class="lamp-name">ESP32 LED</div>
+                        <div class="lamp-status">OFF</div>
+                        <div class="lamp-toggle"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Camera Column (Settings + Control) -->
+            <div class="camera-column">
+                <!-- Camera Settings Card -->
+                {% comment %} <section class="card camera-settings-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h2 class="card-title">Camera Settings</h2>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Brightness</span>
+                            <span class="setting-value" id="brightnessValue">0</span>
+                        </div>
+                        <input 
+                            type="range" 
+                            class="slider" 
+                            id="brightness" 
+                            min="-2" 
+                            max="2" 
+                            value="0" 
+                            step="1"
+                            oninput="updateSetting('brightness', this.value)"
+                        >
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Contrast</span>
+                            <span class="setting-value" id="contrastValue">0</span>
+                        </div>
+                        <input 
+                            type="range" 
+                            class="slider" 
+                            id="contrast" 
+                            min="-2" 
+                            max="2" 
+                            value="0" 
+                            step="1"
+                            oninput="updateSetting('contrast', this.value)"
+                        >
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Resolution</span>
+                        </div>
+                        <select class="resolution-select" id="resolution" onchange="updateResolution(this.value)">
+                            <option value="QVGA">QVGA (320x240)</option>
+                            <option value="CIF">CIF (400x296)</option>
+                            <option value="VGA">VGA (640x480)</option>
+                            <option value="SVGA" selected>SVGA (800x600)</option>
+                            <option value="XGA">XGA (1024x768)</option>
+                            <option value="SXGA">SXGA (1280x1024)</option>
+                            <option value="UXGA">UXGA (1600x1200)</option>
+                        </select>
+                    </div>
+                </section> {% endcomment %}
+
+                <!-- Camera Control Card -->
+                <section class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <h2 class="card-title">Show Photo</h2>
+                    </div>
+
+                    <div class="camera-controls">
+                        <button class="capture-btn" id="captureBtn" onclick="capturePhoto()">
+                            <i class="fas fa-camera"></i>
+                            <span>Captured Photo</span>
+                        </button>
+
+                        {% comment %} <button class="flash-toggle" id="flashToggle" onclick="toggleFlash()">
+                            <i class="fas fa-bolt"></i>
+                            <span>Flash: OFF</span>
+                        </button> {% endcomment %}
+                    </div>
+
+                    <div class="camera-preview" id="cameraPreview">
+                        <div class="camera-placeholder">
+                            <i class="fas fa-camera"></i>
+                            <p>No image captured yet</p>
+                        </div>
+                    </div>
+
+                    <div class="image-caption" id="imageCaption" style="display: none;">
+                        📸 Last captured: <span id="captureTime">--</span>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Command History Section (Right Column) -->
+            <section class="card history-section">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h2 class="card-title">Command History</h2>
+                </div>
+
+                <div class="history-header">
+                    <button class="clear-history" id="clearHistoryBtn" onclick="clearHistory()">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
+
+                <div class="history-list" id="historyList">
+                    <div class="history-empty">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>No commands yet</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const CSRF_TOKEN = '{{ csrf_token }}';
+    </script>
+    <script src="{% static 'esp32/js/main.js' %}"></script>
+</body>
+</html>

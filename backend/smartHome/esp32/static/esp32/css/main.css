@@ -1,0 +1,769 @@
+/* ============================================
+           CSS VARIABLES
+        ============================================ */
+        :root {
+            /* Dark Theme (Default) */
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151932;
+            --bg-card: rgba(21, 25, 50, 0.8);
+            --text-primary: #e0e7ff;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: rgba(59, 130, 246, 0.2);
+            --shadow: rgba(0, 0, 0, 0.3);
+            --glow: rgba(251, 191, 36, 0.5);
+            --lamp-on: #fbbf24;
+        }
+
+        /* Light Theme */
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: rgba(148, 163, 184, 0.2);
+            --shadow: rgba(0, 0, 0, 0.08);
+            --glow: rgba(251, 191, 36, 0.4);
+            --lamp-on: #f59e0b;
+        }
+
+        /* ============================================
+           GLOBAL RESET
+        ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ============================================
+           HEADER
+        ============================================ */
+        .header {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .clock {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .theme-toggle {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        /* ============================================
+           CONTAINER & GRID
+        ============================================ */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+
+        /* ============================================
+           CARD STYLES
+        ============================================ */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 24px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* ============================================
+           COMMAND INPUT SECTION
+        ============================================ */
+        .command-section {
+            grid-column: 1 / -1;
+        }
+
+        .command-input-wrapper {
+            position: relative;
+        }
+
+        .command-input {
+            width: 100%;
+            padding: 1.25rem 300px 1.25rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .command-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .command-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .command-buttons {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .send-btn, .voice-btn, .image-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .send-btn:hover, .voice-btn:hover, .image-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .send-btn:active, .voice-btn:active, .image-btn:active {
+            transform: scale(0.95);
+        }
+
+        .voice-btn {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+        }
+
+        .voice-btn.recording {
+            animation: recording-pulse 1s infinite;
+        }
+
+        @keyframes recording-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .image-btn {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .command-examples {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .example-chip {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-chip:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* ============================================
+           IMAGE PREVIEW
+        ============================================ */
+        #imageInput {
+            display: none;
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            display: none;
+            position: relative;
+        }
+
+        .image-preview.active {
+            display: block;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 15px;
+            border: 2px solid var(--border);
+        }
+
+        .image-preview-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--error);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ============================================
+           VIRTUAL LAMPS & ESP32 LED
+        ============================================ */
+        .lamps-section {
+            grid-column: 1 / -1;
+        }
+
+        .lamps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .lamp-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lamp-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--glow);
+        }
+
+        .lamp-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .lamp-card.on .lamp-icon {
+            color: var(--lamp-on);
+            filter: drop-shadow(0 0 20px var(--glow));
+        }
+
+        .lamp-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .lamp-status {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .lamp-card.on .lamp-status {
+            color: var(--success);
+        }
+
+        .lamp-toggle {
+            width: 60px;
+            height: 30px;
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            position: relative;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+
+        .lamp-toggle::before {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .lamp-card.on .lamp-toggle {
+            background: var(--lamp-on);
+            border-color: var(--lamp-on);
+        }
+
+        .lamp-card.on .lamp-toggle::before {
+            transform: translateX(30px);
+            background: white;
+        }
+
+        /* ============================================
+           CAMERA COLUMN (Settings + Control)
+        ============================================ */
+        .camera-column {
+            grid-column: span 6;
+        }
+
+        .camera-settings-card {
+            margin-bottom: 1.5rem;
+        }
+
+        .setting-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .setting-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .setting-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .resolution-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .capture-btn, .flash-toggle {
+            flex: 1;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .flash-toggle {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        .flash-toggle.active {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white;
+            border-color: #f59e0b;
+        }
+
+        .capture-btn:hover, .flash-toggle:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .camera-preview {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .camera-preview img {
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+        }
+
+        .camera-placeholder {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .camera-placeholder i {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .image-caption {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           COMMAND HISTORY SECTION (col-span-6)
+        ============================================ */
+        .history-section {
+            grid-column: span 6;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .clear-history {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .clear-history:hover {
+            background: #dc2626;
+        }
+
+        .history-list {
+            max-height: 860px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .history-item {
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .history-item-command {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .history-item-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           TOAST NOTIFICATIONS
+        ============================================ */
+        .toast-container {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 8px 24px var(--shadow);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast.success .toast-icon {
+            color: var(--success);
+        }
+
+        .toast.error {
+            border-color: var(--error);
+        }
+
+        .toast.error .toast-icon {
+            color: var(--error);
+        }
+
+        /* ============================================
+           RESPONSIVE
+        ============================================ */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .command-section,
+            .lamps-section,
+            .camera-column,
+            .history-section {
+                grid-column: 1 / -1;
+            }
+
+            .command-input {
+                padding-right: 120px;
+            }
+
+            .command-buttons {
+                flex-direction: column;
+                right: 4px;
+                top: 8px;
+                transform: none;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
