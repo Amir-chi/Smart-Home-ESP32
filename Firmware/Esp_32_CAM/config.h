@@ -2,11 +2,11 @@
 #define CONFIG_H
 
 // --- Wi-Fi Settings ---
-const char* WIFI_SSID = "Silam ";
-const char* WIFI_PASS = "11111111";
+const char* WIFI_SSID = "WiFi-Name";
+const char* WIFI_PASS = "Wifi-Password";
 
 // --- Server Settings ---
-const char* WS_HOST = "hardcore-chaplygin--kvidgq9q.iran.liara.run"; 
+const char* WS_HOST = "smarthomemah.liara.run"; // your website domain
 const int   WS_PORT = 443; 
 const char* WS_PATH = "/ws/message/"; 
 

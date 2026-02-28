@@ -14,7 +14,7 @@ private:
     CameraHAL* camera;
     static ServerComm* instance;
     unsigned long lastPingTime = 0;
-    bool isProcessing = false; // پرچم برای جلوگیری از پردازش همزمان
+    bool isProcessing = false;
 
 public:
     ServerComm(FlashController* f, CameraHAL* c) : flash(f), camera(c) {
@@ -27,18 +27,16 @@ public:
     webSocket.onEvent(webSocketEvent);
     webSocket.setReconnectInterval(5000);
     
-    // ✅ کاهش زمان heartbeat به 5 ثانیه
     webSocket.enableHeartbeat(5000, 3000, 2);
 }
 
 void loop() {
     webSocket.loop();
     
-    // ✅ ارسال ping هر 5 ثانیه (به جای 30 ثانیه)
     if (millis() - lastPingTime > 5000) {
         webSocket.sendPing();
         lastPingTime = millis();
-        Serial.println("[WS] Ping sent"); // اضافه کردن log
+        Serial.println("[WS] Ping sent");
     }
 }
 

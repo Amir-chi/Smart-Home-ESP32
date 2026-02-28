@@ -4,5 +4,5 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TOKEN = os.getenv("BOT_TOKEN")
+TOKEN = os.getenv("BOT-TOKEN")
 app = Application.builder().token(TOKEN).build()
